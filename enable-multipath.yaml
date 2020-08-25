@@ -1,0 +1,80 @@
+---
+- hosts: ubuntu
+  become: true
+  gather_facts: yes
+
+  tasks:
+        
+        - name: create/edit udev rules
+          shell:
+            cmd: |
+              cat > /lib/udev/rules.d/99-pure-storage.rules <<EOF
+              # Recommended settings for Pure Storage FlashArray.cat 
+
+              # Use noop scheduler for high-performance solid-state storage
+              ACTION=="add|change", KERNEL=="sd*[!0-9]", SUBSYSTEM=="block", ENV{ID_VENDOR}=="PURE", ATTR{queue/scheduler}="noop"
+
+              # Reduce CPU overhead due to entropy collection
+              ACTION=="add|change", KERNEL=="sd*[!0-9]", SUBSYSTEM=="block", ENV{ID_VENDOR}=="PURE", ATTR{queue/add_random}="0"
+
+              # Spread CPU load by redirecting completions to originating CPU
+              ACTION=="add|change", KERNEL=="sd*[!0-9]", SUBSYSTEM=="block", ENV{ID_VENDOR}=="PURE", ATTR{queue/rq_affinity}="2"
+
+              # Set the HBA timeout to 60 seconds
+              ACTION=="add|change", KERNEL=="sd*[!0-9]", SUBSYSTEM=="block", ENV{ID_VENDOR}=="PURE", ATTR{device/timeout}="60"
+              EOF
+        
+        - name: load the new udev rules
+          shell:
+            cmd: udevadm control --reload-rules && udevadm trigger
+        
+        - name: Install multipath tools
+          apt: name=multipath-tools update_cache=yes state=latest force_apt_get=yes
+          register: multipathtools
+
+        - name: multipathtools
+          debug:
+            var: multipathtools.stdout_lines
+
+        - name: Install multipath tools boot
+          apt: name=multipath-tools-boot update_cache=yes state=latest force_apt_get=yes
+          register: multipathtoolsboot
+
+        - name: create/edit multipath.conf
+          shell:           
+            cmd: | 
+              cat > /etc/multipath.conf <<EOF
+              defaults {
+                      polling_interval 10
+              }               
+              devices {
+                      device {
+                              vendor "PURE"
+                              product "FlashArray"
+                              path_grouping_policy "group_by_prio"
+                              path_checker "tur"
+                              fast_io_fail_tmo 10
+                              dev_loss_tmo 60
+                              no_path_retry 0
+                              hardware_handler "1 alua"
+                              prio "alua"
+                              failback "immediate"
+                      }
+              }
+              EOF
+
+        - name: restart multipathd service
+          shell:
+            cmd: service multipathd restart
+
+        - shell:
+            cmd: multipath -ll
+          register: multipathll
+
+        - name: print multipath -ll output
+          debug:
+            var: multipathll
+
+        - name: print var
+          debug:
+            var: ansible_processor_vcpus

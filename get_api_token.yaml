@@ -1,0 +1,20 @@
+---
+- name: Create API token for FlashArray
+  hosts: cloudblockstore
+  connection: local
+  gather_facts: no
+ 
+  tasks:
+    - name: Create new user ansible with API token
+      purefa_user:
+        name: ansibleuser
+        password: ansiblepassword
+        role: array_admin
+        api: true
+        fa_url: "{{ fa_url }}"
+        api_token: "{{ array_admin_api_token }}"
+      register: vault_api_token
+    
+    - name: print ansibleuser api_token
+      debug:
+        var: vault_api_token 

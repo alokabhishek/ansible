@@ -1,0 +1,23 @@
+---
+- name: Create a host and attach volume
+  hosts: cloudblockstore
+  connection: local
+  gather_facts: no
+  vars_files:
+    - ./secrets.yaml
+  collections:
+  - purestorage.flasharray
+  
+  tasks:
+    - name: create a new host and attach volume
+      purefa_host:
+        host: "{{ hostname }}"
+        volume: "{{ volname }}"
+        iqn: "{{ hostvars.ubuntu.iqn.stdout }}"
+        fa_url: "{{ fa_url }}"
+        api_token: "{{ vault_api_token }}"
+      register: new_host
+
+    - name: print hostname
+      debug:
+        var: new_host

@@ -1,0 +1,39 @@
+---
+- hosts: ubuntu
+  become: true
+  gather_facts: yes
+
+  tasks:
+
+        - name: Install open-iscsi package
+          apt: name=open-iscsi update_cache=yes state=latest force_apt_get=yes
+          register: open_iscsi
+
+        - debug:
+            var: open_iscsi.stdout_lines
+
+        - name: Restart iscsid service
+          shell:
+            cmd: systemctl restart iscsid.service
+          register: iscsidrestart
+
+        - name: Check iscsid status
+          shell:
+            cmd: systemctl status iscsid.service
+          register: iscsidstatus
+
+        - debug:            
+            var: iscsidstatus.stdout_lines
+
+        - name: Collect Initiator IQN
+          shell:
+            cmd: cat /etc/iscsi/initiatorname.iscsi | grep InitiatorName= | sed 's/=/ /' | awk '{print $2}'
+          register: localiqn
+             
+        - set_fact:
+            iqn: "{{ localiqn }}"
+            cacheable: yes 
+
+        - name: "Print IQN from hostvars"
+          debug:
+            var: hostvars.ubuntu.iqn.stdout
