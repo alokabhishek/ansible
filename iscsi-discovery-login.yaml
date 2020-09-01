@@ -1,5 +1,5 @@
 ---
-- hosts: ubuntu
+- hosts: "{{ ansible_inventory_hostname }}" 
   become: true
   gather_facts: yes
  
@@ -18,7 +18,7 @@
           shell:
             cmd: sed -i 's/^\(node\.session\.nr_sessions\s*=\s*\).*$/\12/' /etc/iscsi/iscsid.conf
           when: ansible_processor_vcpus == 2
- 
+     
         - name: Modify iscsid Session Count
           shell:
             cmd: sed -i 's/^\(node\.session\.nr_sessions\s*=\s*\).*$/\12/' /etc/iscsi/iscsid.conf

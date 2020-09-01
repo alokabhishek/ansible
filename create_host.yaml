@@ -3,8 +3,8 @@
   hosts: cloudblockstore
   connection: local
   gather_facts: no
-  vars_files:
-    - ./secrets.yaml
+  #  vars_files:
+  #    - ./secrets.yaml
   collections:
   - purestorage.flasharray
   
@@ -13,11 +13,11 @@
       purefa_host:
         host: "{{ hostname }}"
         volume: "{{ volname }}"
-        iqn: "{{ hostvars.ubuntu.iqn.stdout }}"
+        iqn: "{{ hostvars[ansible_inventory_hostname]['iqn']['stdout'] }}"
         fa_url: "{{ fa_url }}"
-        api_token: "{{ vault_api_token }}"
-      register: new_host
+        api_token: "{{ pure_api_token }}"
+      register: new_hostname
 
     - name: print hostname
       debug:
-        var: new_host
+        var: new_hostname

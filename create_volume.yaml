@@ -1,23 +1,23 @@
 ---
-- name: Create volume on FlashArray
+- name: Create New CloudBlockStore Volume
   hosts: cloudblockstore
   connection: local
   gather_facts: no
-  vars_files:
-  - ./secrets.yaml
+  #  vars_files:
+  #  - ./secrets.yaml
   collections:
   - purestorage.flasharray
   
   tasks:
-    - name: create new 1TB volume
+    - name: create a new volume
       purefa_volume:
         name: "{{ volname }}"
-        size: 1T
+        size: "{{ size }}"
         fa_url: "{{ fa_url }}"
-        api_token: "{{ vault_api_token }}"
+        api_token: "{{ pure_api_token }}"
         state: present
-      register: volumes
+      register: new_volume
 
-    - name: print volume name
+    - name: print volume_volume
       debug:
-        var: volumes
+        var: new_volume

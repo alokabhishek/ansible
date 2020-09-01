@@ -3,18 +3,19 @@
   hosts: cloudblockstore
   connection: local
   gather_facts: yes
-  vars_files:
-    - ./secrets.yaml
+  #  The 'pure_api_token' variable can be stored in ansible-vault secrets.yaml file for more secure API token retrieval
+  #  vars_files:
+  #    - ./secrets.yaml
   collections:
   - purestorage.flasharray
 
   tasks:
-    - name: collect all information
+    - name: Collect Pure Configuration
       purefa_info:
         gather_subset:
           - all
         fa_url: "{{ fa_url }}"
-        api_token: "{{ vault_api_token }}"
+        api_token: "{{ pure_api_token }}"
       register: array_info
 
     - name: Collect Pure Target IQN and Set as Fact
@@ -25,9 +26,9 @@
         iqn: "{{ pureportiqn }}"
         cacheable: yes
 
-    - name: "Print Pure IQN from hostvars"
-      debug:
-        var: hostvars.cloudblockstore.iqn.stdout
+        #    - name: "Print Pure IQN from hostvars"
+        #      debug:
+        #        var: hostvars.cloudblockstore.iqn.stdout
 
     - name: show ct0.eth2
       shell: echo "{{ array_info['purefa_info']['network']['ct0.eth2']['address'] }}"
@@ -45,13 +46,13 @@
         iscsiportalct0ipport: "{{ pureiscsiportalct0ipport }}"
         cacheable: yes
 
-    - name: "Print CT0 iSCSI IP from hostvars"
-      debug:
-        var: hostvars.cloudblockstore.iscsiportalct0ip.stdout
+        #    - name: "Print CT0 iSCSI IP from hostvars"
+        #      debug:
+        #        var: hostvars.cloudblockstore.iscsiportalct0ip.stdout
 
-    - name: "Print CT0 iSCSI IP from hostvars"
-      debug:
-        var: hostvars.cloudblockstore.iscsiportalct0ipport.stdout
+        #    - name: "Print CT0 iSCSI IP from hostvars"
+        #      debug:
+        #        var: hostvars.cloudblockstore.iscsiportalct0ipport.stdout
     
     - name: show ct1.eth2
       shell: echo "{{ array_info['purefa_info']['network']['ct1.eth2']['address'] }}"
@@ -69,10 +70,10 @@
         iscsiportalct1ipport: "{{ pureiscsiportalct1ipport }}"
         cacheable: yes
 
-    - name: "Print CT1 iSCSI IP from hostvars"
-      debug:
-        var: hostvars.cloudblockstore.iscsiportalct1ip.stdout
+        #    - name: "Print CT1 iSCSI IP from hostvars"
+        #      debug:
+        #        var: hostvars.cloudblockstore.iscsiportalct1ip.stdout
 
-    - name: "Print CT1 iSCSI IP from hostvars"
-      debug:
-        var: hostvars.cloudblockstore.iscsiportalct1ipport.stdout
+        #    - name: "Print CT1 iSCSI IP from hostvars"
+        #      debug:
+        #        var: hostvars.cloudblockstore.iscsiportalct1ipport.stdout

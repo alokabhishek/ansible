@@ -1,9 +1,9 @@
 ---
 - name: Combine CBS Storage Provisioning Playbooks
-  hosts: cloudblockstore
+  hosts: all
   connection: local
   gather_facts: no
-  
+
 - import_playbook: collectportinfo.yaml
 - import_playbook: create_volume.yaml
   vars:

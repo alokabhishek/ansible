@@ -1,5 +1,5 @@
 ---
-- hosts: ubuntu
+- hosts: "{{ ansible_inventory_hostname }}"
   become: true
   gather_facts: yes
 
@@ -8,9 +8,12 @@
         - name: Install open-iscsi package
           apt: name=open-iscsi update_cache=yes state=latest force_apt_get=yes
           register: open_iscsi
+          when: ansible_distribution == 'Ubuntu'
 
         - debug:
-            var: open_iscsi.stdout_lines
+            var: open_iscsi
+
+# open-iscsi is installed by default on SLES15.2 and openSUSE15.2
 
         - name: Restart iscsid service
           shell:
@@ -22,18 +25,18 @@
             cmd: systemctl status iscsid.service
           register: iscsidstatus
 
-        - debug:            
+        - debug:
             var: iscsidstatus.stdout_lines
 
         - name: Collect Initiator IQN
           shell:
             cmd: cat /etc/iscsi/initiatorname.iscsi | grep InitiatorName= | sed 's/=/ /' | awk '{print $2}'
           register: localiqn
-             
+
         - set_fact:
             iqn: "{{ localiqn }}"
-            cacheable: yes 
+            cacheable: yes
 
         - name: "Print IQN from hostvars"
           debug:
-            var: hostvars.ubuntu.iqn.stdout
+            msg: "{{ hostvars[ansible_inventory_hostname]['iqn']['stdout'] }}"

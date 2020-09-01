@@ -1,15 +1,15 @@
 ---
-- hosts: ubuntu
+- hosts: "{{ ansible_inventory_hostname }}"
   become: true
   gather_facts: yes
 
   tasks:
-        
+
         - name: create/edit udev rules
           shell:
             cmd: |
               cat > /lib/udev/rules.d/99-pure-storage.rules <<EOF
-              # Recommended settings for Pure Storage FlashArray.cat 
+              # Recommended settings for Pure Storage FlashArray.cat
 
               # Use noop scheduler for high-performance solid-state storage
               ACTION=="add|change", KERNEL=="sd*[!0-9]", SUBSYSTEM=="block", ENV{ID_VENDOR}=="PURE", ATTR{queue/scheduler}="noop"
@@ -23,30 +23,34 @@
               # Set the HBA timeout to 60 seconds
               ACTION=="add|change", KERNEL=="sd*[!0-9]", SUBSYSTEM=="block", ENV{ID_VENDOR}=="PURE", ATTR{device/timeout}="60"
               EOF
-        
+
         - name: load the new udev rules
           shell:
             cmd: udevadm control --reload-rules && udevadm trigger
-        
+
         - name: Install multipath tools
           apt: name=multipath-tools update_cache=yes state=latest force_apt_get=yes
           register: multipathtools
+          when: ansible_distribution == 'Ubuntu'
+
+        - name: Install multipath tools OpenSUSE/SUSE
+          zypper:
+            name: multipath-tools
+            state: latest
+          register: multipathtools
+          when: ansible_distribution == "SLES" or ansible_distribution == "openSUSE Leap"
 
         - name: multipathtools
           debug:
-            var: multipathtools.stdout_lines
-
-        - name: Install multipath tools boot
-          apt: name=multipath-tools-boot update_cache=yes state=latest force_apt_get=yes
-          register: multipathtoolsboot
+            var: multipathtools
 
         - name: create/edit multipath.conf
-          shell:           
-            cmd: | 
+          shell:
+            cmd: |
               cat > /etc/multipath.conf <<EOF
               defaults {
                       polling_interval 10
-              }               
+              }
               devices {
                       device {
                               vendor "PURE"
@@ -63,18 +67,20 @@
               }
               EOF
 
-        - name: restart multipathd service
+        - name: start multipath daemon
           shell:
-            cmd: service multipathd restart
+            cmd: modprobe dm-multipath
 
-        - shell:
+        - name: start multipathd service
+          service:
+            name: multipathd
+            state: started
+
+        - name: multipath daemon start on boot
+          shell:
             cmd: multipath -ll
           register: multipathll
 
-        - name: print multipath -ll output
+        - name: show the current multipath topology
           debug:
             var: multipathll
-
-        - name: print var
-          debug:
-            var: ansible_processor_vcpus
