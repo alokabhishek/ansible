@@ -16,8 +16,3 @@
         iqn: "{{ hostvars[ansible_inventory_hostname]['iqn']['stdout'] }}"
         fa_url: "{{ fa_url }}"
         api_token: "{{ pure_api_token }}"
-      register: new_hostname
-
-    - name: print hostname
-      debug:
-        var: new_hostname

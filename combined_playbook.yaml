@@ -6,14 +6,7 @@
 
 - import_playbook: collectportinfo.yaml
 - import_playbook: create_volume.yaml
-  vars:
-    volname: "{{ volname }}"
-
 - import_playbook: open-iscsi.yaml
-
 - import_playbook: create_host.yaml
-  vars:
-    hostname: "{{ hostname }}"
-
 - import_playbook: iscsi-discovery-login.yaml
 - import_playbook: enable-multipath.yaml

@@ -28,17 +28,17 @@
           shell:
             cmd: udevadm control --reload-rules && udevadm trigger
 
-        - name: Install multipath tools
+        - name: Install multipath tools Ubuntu
           apt: name=multipath-tools update_cache=yes state=latest force_apt_get=yes
           register: multipathtools
-          when: ansible_distribution == 'Ubuntu'
+          when: ansible_distribution_file_variety == 'Debian'
 
-        - name: Install multipath tools OpenSUSE/SUSE
+        - name: Install multipath tools SLES and OpenSuse
           zypper:
             name: multipath-tools
             state: latest
           register: multipathtools
-          when: ansible_distribution == "SLES" or ansible_distribution == "openSUSE Leap"
+          when: ansible_distribution_file_variety == 'SUSE'
 
         - name: multipathtools
           debug:
@@ -67,14 +67,27 @@
               }
               EOF
 
+        - name: restart multipathd service
+          service:
+            name: multipathd
+            state: restarted
+          when: ansible_distribution_file_variety == 'Debian'
+
         - name: start multipath daemon
           shell:
             cmd: modprobe dm-multipath
+          when: ansible_distribution_file_variety == 'SUSE'
 
         - name: start multipathd service
           service:
             name: multipathd
             state: started
+          when: ansible_distribution_file_variety == 'SUSE'
+
+        - name: multipath -v2
+          shell:
+            cmd: multipath -v2
+          when: ansible_distribution_file_variety == 'SUSE'
 
         - name: multipath daemon start on boot
           shell:

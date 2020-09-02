@@ -10,7 +10,7 @@
   - purestorage.flasharray
 
   tasks:
-    - name: Collect Pure Configuration
+    - name: Collect Pure iSCSI Configuration
       purefa_info:
         gather_subset:
           - all
@@ -26,11 +26,7 @@
         iqn: "{{ pureportiqn }}"
         cacheable: yes
 
-        #    - name: "Print Pure IQN from hostvars"
-        #      debug:
-        #        var: hostvars.cloudblockstore.iqn.stdout
-
-    - name: show ct0.eth2
+    - name: echo ct0.eth2
       shell: echo "{{ array_info['purefa_info']['network']['ct0.eth2']['address'] }}"
       register: pureiscsiportalct0ip
     
@@ -46,15 +42,7 @@
         iscsiportalct0ipport: "{{ pureiscsiportalct0ipport }}"
         cacheable: yes
 
-        #    - name: "Print CT0 iSCSI IP from hostvars"
-        #      debug:
-        #        var: hostvars.cloudblockstore.iscsiportalct0ip.stdout
-
-        #    - name: "Print CT0 iSCSI IP from hostvars"
-        #      debug:
-        #        var: hostvars.cloudblockstore.iscsiportalct0ipport.stdout
-    
-    - name: show ct1.eth2
+    - name: echo ct1.eth2
       shell: echo "{{ array_info['purefa_info']['network']['ct1.eth2']['address'] }}"
       register: pureiscsiportalct1ip
 
@@ -69,11 +57,3 @@
     - set_fact:
         iscsiportalct1ipport: "{{ pureiscsiportalct1ipport }}"
         cacheable: yes
-
-        #    - name: "Print CT1 iSCSI IP from hostvars"
-        #      debug:
-        #        var: hostvars.cloudblockstore.iscsiportalct1ip.stdout
-
-        #    - name: "Print CT1 iSCSI IP from hostvars"
-        #      debug:
-        #        var: hostvars.cloudblockstore.iscsiportalct1ipport.stdout

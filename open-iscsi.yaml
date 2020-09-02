@@ -5,38 +5,44 @@
 
   tasks:
 
-        - name: Install open-iscsi package
-          apt: name=open-iscsi update_cache=yes state=latest force_apt_get=yes
-          register: open_iscsi
-          when: ansible_distribution == 'Ubuntu'
+         - name: Install open-iscsi package
+           apt: name=open-iscsi update_cache=yes state=latest force_apt_get=yes
+           register: open_iscsi
+           when: ansible_distribution_file_variety == 'Debian'
+ 
+         - name: Backup Current IQN
+           shell:
+             cmd: mv /etc/iscsi/initiatorname.iscsi /etc/iscsi/initiatorname.iscsi.backup; cat /etc/iscsi/initiatorname.iscsi.backup
 
-        - debug:
-            var: open_iscsi
+         - name: Generate Random IQN
+           shell:
+             cmd: echo "InitiatorName=`/sbin/iscsi-iname`" > /etc/iscsi/initiatorname.iscsi
 
-# open-iscsi is installed by default on SLES15.2 and openSUSE15.2
+         - name: Register New IQN
+           shell:
+             cmd: cat /etc/iscsi/initiatorname.iscsi | grep InitiatorName= | sed 's/=/ /' | awk '{print $2}'
+           register: localiqn
 
-        - name: Restart iscsid service
-          shell:
-            cmd: systemctl restart iscsid.service
-          register: iscsidrestart
+         - set_fact:
+             iqn: "{{ localiqn }}"
+             cacheable: yes
 
-        - name: Check iscsid status
-          shell:
-            cmd: systemctl status iscsid.service
-          register: iscsidstatus
+         - name: "Print IQN from hostvars"
+           debug:
+             msg: "{{ hostvars[ansible_inventory_hostname]['iqn']['stdout'] }}"
 
-        - debug:
-            var: iscsidstatus.stdout_lines
+         - name: Restart iscsid service
+           shell:
+             cmd: systemctl restart iscsid.service
+           register: iscsidrestart
+           when: ansible_distribution_file_variety == 'Debian'
 
-        - name: Collect Initiator IQN
-          shell:
-            cmd: cat /etc/iscsi/initiatorname.iscsi | grep InitiatorName= | sed 's/=/ /' | awk '{print $2}'
-          register: localiqn
+         - name: Print iscsid status
+           shell:
+             cmd: systemctl status iscsid.service
+           register: iscsidstatus
+           when: ansible_distribution_file_variety == 'Debian'
 
-        - set_fact:
-            iqn: "{{ localiqn }}"
-            cacheable: yes
-
-        - name: "Print IQN from hostvars"
-          debug:
-            msg: "{{ hostvars[ansible_inventory_hostname]['iqn']['stdout'] }}"
+         - debug:
+             var: iscsidstatus.stdout_lines
+           when: ansible_distribution_file_variety == 'Debian' 
