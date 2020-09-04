@@ -11,8 +11,8 @@
   tasks:
     - name: create a new host and attach volume
       purefa_host:
-        host: "{{ hostname }}"
+        host: "{{ hostvars[cloud_initiator]['ansible_hostname'] }}"
         volume: "{{ volname }}"
-        iqn: "{{ hostvars[ansible_inventory_hostname]['iqn']['stdout'] }}"
+        iqn: "{{ hostvars[cloud_initiator]['iqn']['stdout'] }}"
         fa_url: "{{ fa_url }}"
         api_token: "{{ pure_api_token }}"

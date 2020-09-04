@@ -1,9 +1,13 @@
 ---
-- hosts: "{{ ansible_inventory_hostname }}"
+- hosts: "{{ cloud_initiator }}"
   become: true
   gather_facts: yes
 
   tasks:
+         - name: Wait until ansible intall is complete before continuing
+           wait_for:
+             path: /etc/ansible/ansible.cfg
+             search_regex: defaults
 
          - name: Install open-iscsi package
            apt: name=open-iscsi update_cache=yes state=latest force_apt_get=yes
@@ -29,7 +33,7 @@
 
          - name: "Print IQN from hostvars"
            debug:
-             msg: "{{ hostvars[ansible_inventory_hostname]['iqn']['stdout'] }}"
+             msg: "{{ hostvars[inventory_hostname]['iqn']['stdout'] }}"
 
          - name: Restart iscsid service
            shell:

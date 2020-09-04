@@ -1,5 +1,5 @@
 ---
-- hosts: "{{ ansible_inventory_hostname }}"
+- hosts: "{{ cloud_initiator }}"
   become: true
   gather_facts: yes
 
