@@ -1,0 +1,19 @@
+---
+- hosts: windows
+  gather_facts: no
+
+  tasks:
+
+    - name: Start iscsi Service
+      win_shell: Start-Service -Name MSiSCSI
+      register: iscsiservice
+
+    - debug:
+        var: iscsiservice
+
+    - name: Retrieve IQN
+      win_shell: Get-InitiatorPort | Select-Object -Property NodeAddress
+      register: winiqn
+
+    - debug:
+        var: winiqn.stdout_lines
