@@ -4,16 +4,31 @@
 
   tasks:
 
+
     - name: Start iscsi Service
       win_shell: Start-Service -Name MSiSCSI
       register: iscsiservice
 
+    - name: Set iscsi Service Automatic for Startup
+      win_shell: Set-Service -Name MSiSCSI -StartupType Automatic
+
     - debug:
         var: iscsiservice
 
-    - name: Retrieve IQN
-      win_shell: Get-InitiatorPort | Select-Object -Property NodeAddress
+    - name: Retrieve Host IQN
+      win_shell: |
+        $win_iqn = Get-InitiatorPort | Select-Object -Property NodeAddress
+        $win_iqn -match "NodeAddress=(?<iqn>.*)}" | Out-Null
+        $matches['iqn']
       register: winiqn
 
     - debug:
-        var: winiqn.stdout_lines
+        var: winiqn
+
+    - set_fact:
+        iqn: "{{ winiqn }}"
+        cacheable: yes
+
+    - name: "Print IQN from hostvars"
+      debug:
+        msg: "{{ hostvars[inventory_hostname]['iqn']['stdout'] | trim }}"
